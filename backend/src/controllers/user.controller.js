@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken" 
 import sendEmailVerification from "../utils/sendEmailVerification.js"
+import { Otp } from "../models/verifyEmailOtp.model.js"
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -75,7 +76,62 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(500,"Somthing went wrong")
     }
     
-} )
+})
+
+
+const verifyEmail = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body
+    
+    if (!email || !otp) {
+        throw new ApiError(400,"All fileds are requried")
+    }
+
+    try {
+        const user = await User.findOne({ email })
+        
+        if (!user) {
+            throw new ApiError(400,"Email does not exits")
+        }
+    
+        if (user.isVerified) {
+            throw new ApiError(400,"User id already verified")
+        }
+    
+        const emailVerification = await Otp.findOne({ userId: user?._id, otp })
+        if (!emailVerification) {
+            if (!user.isVerified) {
+                await sendEmailVerification(req, user)
+                return res.status(400).json(new ApiResponse(400,"Invalid OTP,new OTP sent to your email "))
+            }
+            return res.status(400).json(new ApiResponse(400,"Invalid OTP"))    
+    }
+    
+    //Ckeck Otp is expired
+    const currentTime = Date.now()
+    const expirationTime = new Date(emailVerification.createdAt.getTime() + 15 * 60 * 1000)
+    
+    if (currentTime > expirationTime) {
+        //OTP expired, Send new OTP
+
+        await sendEmailVerification(req, user)
+        return res.status(400).json(new ApiResponse(400,"OTP expired, new OTP sent to your email"))
+    }
+
+    //OTP is valid and not expired mark email is verifed
+    user.isVerified = true
+    await user.save()
+
+    //Delete otp from database 
+    await Otp.deleteMany({ userId: user._id })
+    
+    return res.status(201).json(new ApiResponse(201,user,"User Verifed successfully"))
+    } catch (error) {
+    console.log(error);
+    throw new ApiError(500,"Unable to Verify email, Please try again later")
+}
+})
+
+
 
 const loginUser = asyncHandler(async (req, res) =>{
 
@@ -295,6 +351,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
   
 export {
     registerUser,
+    verifyEmail,
     loginUser,
     logoutUser,
     refreshAccessToken,

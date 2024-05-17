@@ -1,10 +1,10 @@
 import transporter from "./emailConfig.js"
-import { User } from "../models/user.model.js"
+import { Otp } from "../models/verifyEmailOtp.model.js"
 
 const sendEmailVerification= async (req,user) =>  {
     const otp = Math.floor(1000 + Math.random() * 9000)
 
-    await User.updateOne({_id:user?._id},{otp})
+    await new Otp({userId: user?._id, otp}).save()
     
     const otpVerificationLink = `${process.env.FRONTEND_HOST}/account/verify-email`
 

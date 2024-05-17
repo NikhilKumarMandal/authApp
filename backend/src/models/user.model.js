@@ -27,14 +27,6 @@ const userSchema = new Schema(
         },
         resetPasswordToken: String,   
         resetPasswordExpire: String,
-        otp: {
-            type: String,
-        },
-        createdAt: {
-            type: Date,
-            default: Date.now(),
-            expires: '10m'
-        }
         },
        {
         timestamps: true
