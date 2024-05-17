@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken" 
+import sendEmailVerification from "../utils/sendEmailVerification.js"
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -33,70 +34,46 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400,"All fields are requried")
      }
 
-    const existedUser =  await User.findOne({
-        email
-     })
-
-    if (existedUser) {
-        throw new ApiError(409,"User with email or username already exists")
-    }
-
-    let avatarLocalPath;
-    if (req.files && Array.isArray(req.files.avatar) && req.files.avatar.length > 0) {
-        avatarLocalPath = req.files.avatar[0].path
-    }
-
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avvatar file is required")
-    }
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-    if (!avatar) {
-        throw new ApiError(400, "Thumbnail file is required")
-    }
-
+    try {
+        const existedUser =  await User.findOne({
+            email
+         })
     
-    const user = await User.create({
-        name,
-        email,
-        password,
-        avatar: {
-            public_id: avatar?.public_id,
-            url: avatar?.url
-        },
-    })
-
-    console.log(user);
-
-    const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
-
-    const options = {
-        httpOnly: true, 
-        secure: true, 
-        sameSite: 'none',
-        expires: new Date(Date.now() + 3600000)
-    };
-
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
-
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
-    console.log(createdUser);
-
-    return res.status(201)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-        new ApiResponse(
-            200, 
-            createdUser, 
-            "User registered Successfully"
+        if (existedUser) {
+            throw new ApiError(409, "User with email or username already exists")
+        }
+        
+        const user = await User.create({
+            name,
+            email,
+            password,
+        })
+    
+        console.log(user);
+    
+        const createdUser = await User.findById(user._id).select(
+            "-password -refreshToken"
         )
-    )
+    
+        if (!createdUser) {
+            throw new ApiError(500, "Something went wrong while registering the user")
+        }
+        console.log(createdUser);
+    
+        sendEmailVerification(req,createdUser)
+    
+        return res.status(201)
+        .json(
+            new ApiResponse(
+                200, 
+                createdUser, 
+                "User registered Successfully"
+            )
+        )
+    } catch (error) {
+        console.log("Error : ",error);
+        throw new ApiError(500,"Somthing went wrong")
+    }
     
 } )
 
@@ -282,19 +259,11 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
 
     const prevUser = await User.findById(req.user._id)
 
-    console.log(prevUser);
-        // Delete the old avatar from Cloudinary
-        const deleteOldAvatar = await deleteFromCloudinary(prevUser.avatar.public_id, 'image');
-
-        if (!deleteOldAvatar) {
-                    throw new ApiError(500, "Error deleting old avatar");
-        }
-
-    const avatarLocalPath = req.file?.path
- 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-
-    if (!name || !avatar) {
+    if (prevUser) {
+        throw new ApiError(400,"User does not found")
+    }
+   
+    if (!name ) {
         throw new ApiError(400, "all fields are requried")
     }
    
@@ -303,10 +272,6 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
         {
             $set: {
                 name,
-                avatar: {
-                    public_id: avatar?.public_id,
-                    url: avatar?.url
-                }
             }
         },
         {
