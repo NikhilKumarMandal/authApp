@@ -5,10 +5,8 @@ import cookieParser from "cookie-parser"
 const app = express()
 
 app.use(cors({
-  origin:'https://course-nine-amber.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
-   credentials: true
-
+origin: process.env.CORS_ORIGIN,
+    credentials: true
 }));
 
 

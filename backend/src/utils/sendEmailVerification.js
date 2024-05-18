@@ -1,23 +1,62 @@
 import transporter from "./emailConfig.js"
 import { Otp } from "../models/verifyEmailOtp.model.js"
+import Mailgen from "mailgen"
 
-const sendEmailVerification= async (req,user) =>  {
-    const otp = Math.floor(1000 + Math.random() * 9000)
-
-    await new Otp({userId: user?._id, otp}).save()
+ const sendEmailVerification = async ({req,email,subject, user,mailgenContent}) => {
     
-    const otpVerificationLink = `${process.env.FRONTEND_HOST}/account/verify-email`
+const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+        // Appears in header & footer of e-mails
+        name: 'nikhil',
+        link: 'http://localhost:5173/'
+        // Optional product logo
+        // logo: 'https://mailgen.js/img/logo.png'
+    }
+});
+    console.log(mailgenContent)
+let emailBody = mailGenerator.generate(mailgenContent);
+
+let emailText = mailGenerator.generatePlaintext(mailgenContent);
+
+
+
+
+  
+
+    // await new Otp({userId: user?._id, otp}).save()
+    
+    // const otpVerificationLink = `${process.env.FRONTEND_HOST}/account/verify-email`
+
+
 
     await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: user.email,
-        subject: "OTP - Verify your account",
-         html: `<p>Dear ${user.name},</p><p>Thank you for signing up with our website. To complete your registration, please verify your email address by entering the following one-time password (OTP): ${otpVerificationLink} </p>
-    <h2>OTP: ${otp}</h2>
-    <p>This OTP is valid for 15 minutes. If you didn't request this OTP, please ignore this email.</p>`
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: subject,
+        text: emailText,
+        html: emailBody
     })
 
-    return otp
 }
 
-export default sendEmailVerification
+
+ const verifyemail = (name,verifyotp) => {
+    return  {
+    body: {
+        name: name,
+        intro: 'Welcome to Mailgen! We\'re very excited to have you on board.',
+        dictionary: {
+        OTP: verifyotp
+      },
+        outro: 'Need help, or have questions? Just reply to this email, we\'d love to help.'
+    }
+};
+
+
+}
+
+export {
+    sendEmailVerification,
+    verifyemail
+}

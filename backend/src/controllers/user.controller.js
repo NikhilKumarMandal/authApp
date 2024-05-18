@@ -3,8 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken" 
-import sendEmailVerification from "../utils/sendEmailVerification.js"
-import { Otp } from "../models/verifyEmailOtp.model.js"
+import {sendEmailVerification,  verifyemail } from "../utils/sendEmailVerification.js"
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -53,15 +52,24 @@ const registerUser = asyncHandler( async (req, res) => {
         console.log(user);
     
         const createdUser = await User.findById(user._id).select(
-            "-password -refreshToken"
+            "-password "
         )
     
         if (!createdUser) {
             throw new ApiError(500, "Something went wrong while registering the user")
         }
         console.log(createdUser);
-    
-        sendEmailVerification(req,createdUser)
+        
+        const { otp, otpExpire } = createdUser.generateOtp()
+        
+        createdUser.otp = otp
+        createdUser.otpExpire = otpExpire
+        await createdUser.save({validateBeforeSave:false})
+        await sendEmailVerification({
+            email: createdUser.email,
+            subject: "verifY email",
+            mailgenContent: verifyemail(createdUser.name,otp)
+        })
     
         return res.status(201)
         .json(
@@ -78,60 +86,57 @@ const registerUser = asyncHandler( async (req, res) => {
     
 })
 
-
 const verifyEmail = asyncHandler(async (req, res) => {
-    const { email, otp } = req.body
-    
+    const { email, otp } = req.body;
+
     if (!email || !otp) {
-        throw new ApiError(400,"All fileds are requried")
+        throw new ApiError(400, "All fields are required");
     }
 
     try {
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email });
         
         if (!user) {
-            throw new ApiError(400,"Email does not exits")
+            throw new ApiError(400, "Email does not exist");
         }
     
         if (user.isVerified) {
-            throw new ApiError(400,"User id already verified")
+            throw new ApiError(400, "User is already verified");
         }
     
-        const emailVerification = await Otp.findOne({ userId: user?._id, otp })
+        const emailVerification = await User.findOne({ email, otp });
         if (!emailVerification) {
             if (!user.isVerified) {
-                await sendEmailVerification(req, user)
-                return res.status(400).json(new ApiResponse(400,"Invalid OTP,new OTP sent to your email "))
+                await sendEmailVerification(req, user);
+                return res.status(400).json(new ApiResponse(400, "Invalid OTP, new OTP sent to your email"));
             }
-            return res.status(400).json(new ApiResponse(400,"Invalid OTP"))    
-    }
+            return res.status(400).json(new ApiResponse(400, "Invalid OTP"));
+        }
     
-    //Ckeck Otp is expired
-    const currentTime = Date.now()
-    const expirationTime = new Date(emailVerification.createdAt.getTime() + 15 * 60 * 1000)
-    
-    if (currentTime > expirationTime) {
-        //OTP expired, Send new OTP
+        // Check if OTP is expired
+        const currentTime = Date.now();
+        const expirationTime = new Date(emailVerification.createdAt.getTime() + 15 * 60 * 1000);
+        
+        if (currentTime > expirationTime) {
+            // OTP expired, send new OTP
+            await sendEmailVerification(req, user);
+            return res.status(400).json(new ApiResponse(400, "OTP expired, new OTP sent to your email"));
+        }
 
-        await sendEmailVerification(req, user)
-        return res.status(400).json(new ApiResponse(400,"OTP expired, new OTP sent to your email"))
-    }
+        // OTP is valid and not expired, mark email as verified
+        user.isVerified = true;
+        await user.save();
 
-    //OTP is valid and not expired mark email is verifed
-    user.isVerified = true
-    await user.save()
+        // Optionally otp and otpExpire undefined
+        user.otp = undefined;
+        user.otpExpire = undefined;
 
-    //Delete otp from database 
-    await Otp.deleteMany({ userId: user._id })
-    
-    return res.status(201).json(new ApiResponse(201,user,"User Verifed successfully"))
+        return res.status(201).json(new ApiResponse(201, user, "User Verified successfully"));
     } catch (error) {
-    console.log(error);
-    throw new ApiError(500,"Unable to Verify email, Please try again later")
-}
-})
-
-
+        console.log(error);
+        throw new ApiError(500, "Unable to verify email, please try again later");
+    }
+});
 
 const loginUser = asyncHandler(async (req, res) =>{
 
@@ -148,6 +153,10 @@ const loginUser = asyncHandler(async (req, res) =>{
         throw new ApiError(404, "User does not exist")
     }
 
+    if (!user.isVerified) {
+        throw new ApiError(404,"Your are not verifed, Go and verifed your self first")
+    }
+
    const isPasswordValid = await user.isPasswordCorrect(password)
     console.log(isPasswordValid);
    if (!isPasswordValid) {
@@ -161,9 +170,6 @@ const loginUser = asyncHandler(async (req, res) =>{
    const options = {
     httpOnly: true, 
     secure: true, 
-    sameSite: 'none',
-    expires: new Date(Date.now() + 3600000)
-    // maxAge: 24 * 60 * 60 * 1000 
 };
 
     return res
@@ -268,7 +274,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     } catch (error) {
       throw new ApiError(401, error?.message || "Invalid refresh token");
     }
-  });
+});
 
 const changeCurrentPassword = asyncHandler(async(req,res) => {
 
@@ -346,7 +352,6 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
     .json(new ApiResponse(200, user, "Account details updated successfully"))
 
 })
-
 
   
 export {

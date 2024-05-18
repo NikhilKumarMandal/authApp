@@ -27,18 +27,18 @@ const userSchema = new Schema(
         },
         resetPasswordToken: String,   
         resetPasswordExpire: String,
+        otp: {
+        type: String
         },
+        otpExpire: {
+            type: Date
+        }
+    },
+    
        {
         timestamps: true
        }
 )
-
-userSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
-
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
-})
 
 userSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
@@ -73,6 +73,13 @@ userSchema.methods.generateRefreshToken = function(){
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
+}
+
+userSchema.methods.generateOtp = function () { 
+    const otpgenrate = Math.floor(1000 + Math.random() * 9000);
+    const expireOtp = Date.now() + (20 * 1000 * 60)
+
+    return {otp: otpgenrate, otpExpire: expireOtp}
 }
 
 export const User = mongoose.model("User", userSchema)
