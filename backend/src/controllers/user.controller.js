@@ -3,7 +3,8 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken" 
-import {sendEmailVerification,  verifyemail } from "../utils/sendEmailVerification.js"
+import { sendEmailVerification, verifyemail,resetPassword } from "../utils/sendEmailVerification.js"
+import crypto from "crypto";
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -316,20 +317,19 @@ const getCurrentUser = asyncHandler(async(req,res) => {
         )
 })
 
-const updateAccountDetails = asyncHandler(async(req,res) => {
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { name } = req.body;
 
-    const { name } = req.body
-
-    const prevUser = await User.findById(req.user._id)
-
-    if (prevUser) {
-        throw new ApiError(400,"User does not found")
+    if (!name) {
+        throw new ApiError(400, "All fields are required");
     }
-   
-    if (!name ) {
-        throw new ApiError(400, "all fields are requried")
+
+    const prevUser = await User.findById(req.user?._id);
+
+    if (!prevUser) {
+        throw new ApiError(404, "User not found");
     }
-   
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -339,20 +339,92 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
         },
         {
             new: true
-        } 
-    ).select("-password")
+        }
+    ).select("-password");
 
     if (!user) {
         throw new ApiError(404, "User not found");
     }
 
-    await user.save()
-
     return res
-    .status(200)
-    .json(new ApiResponse(200, user, "Account details updated successfully"))
+        .status(200)
+        .json(new ApiResponse(200, user, "Account details updated successfully"));
+});
 
-})
+const forgetPassword = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+        return next(new ApiError(400, "User does not exist"));
+    }
+
+    // Generate a forget password token
+    const forgetToken = user.generateForgetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Create the reset URL
+    const myUrl = `${req.protocol}://${req.get("host")}/api/v1/users/password/reset/${forgetToken}`;
+
+    try {
+        // Send the email
+        await sendEmailVerification({
+            email: user.email, 
+            subject: "Todo Password reset email",
+            mailgenContent: resetPassword(user.name, myUrl)
+        });
+
+        // Return success response
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                {},
+                "Password reset mail has been sent to your email id"
+            )
+        );
+    } catch (error) {
+        // Handle email sending error
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new ApiError(500, error.message));
+    }
+});
+
+const passwordReset = asyncHandler(async (req, res, next) => {
+    const token = req.params.token;
+    const encryToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+        resetPasswordToken: encryToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+        return next(new ApiError(400, "Token is invalid or expired"));
+    }
+
+    if (req.body.password !== req.body.confirmPassword) {
+        return next(new ApiError(400, "Password and confirm password do not match"));
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Password reset successfully"
+        )
+    );
+});
+
 
   
 export {
@@ -364,4 +436,6 @@ export {
     changeCurrentPassword,
     getCurrentUser,
     updateAccountDetails,
+    passwordReset,
+    forgetPassword
  }

@@ -40,7 +40,26 @@ let emailText = mailGenerator.generatePlaintext(mailgenContent);
 };
 }
 
+const resetPassword = (name, resetPasswordUrl) => {
+    return {
+         body: {
+        name: name,
+        intro: 'You are receving this email because we are received a password request from your account.',
+        action: {
+            instructions: 'Click the button below to reset your password',
+            button: {
+                color: '#22BC66', // Optional action button color
+                text: 'Confirm your account',
+                link: resetPasswordUrl
+            }
+        },
+        outro: 'If you did not request a password request, too tum chuyita ho '
+    }
+    }
+}
+
 export {
     sendEmailVerification,
-    verifyemail
+    verifyemail,
+    resetPassword
 }
