@@ -1,5 +1,4 @@
 import transporter from "./emailConfig.js"
-import { Otp } from "../models/verifyEmailOtp.model.js"
 import Mailgen from "mailgen"
 
  const sendEmailVerification = async ({req,email,subject, user,mailgenContent}) => {
@@ -19,17 +18,6 @@ let emailBody = mailGenerator.generate(mailgenContent);
 
 let emailText = mailGenerator.generatePlaintext(mailgenContent);
 
-
-
-
-  
-
-    // await new Otp({userId: user?._id, otp}).save()
-    
-    // const otpVerificationLink = `${process.env.FRONTEND_HOST}/account/verify-email`
-
-
-
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
@@ -37,9 +25,7 @@ let emailText = mailGenerator.generatePlaintext(mailgenContent);
         text: emailText,
         html: emailBody
     })
-
 }
-
 
  const verifyemail = (name,verifyotp) => {
     return  {
@@ -52,8 +38,6 @@ let emailText = mailGenerator.generatePlaintext(mailgenContent);
         outro: 'Need help, or have questions? Just reply to this email, we\'d love to help.'
     }
 };
-
-
 }
 
 export {

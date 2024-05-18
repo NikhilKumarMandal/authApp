@@ -122,14 +122,15 @@ const verifyEmail = asyncHandler(async (req, res) => {
             await sendEmailVerification(req, user);
             return res.status(400).json(new ApiResponse(400, "OTP expired, new OTP sent to your email"));
         }
-
+ 
         // OTP is valid and not expired, mark email as verified
-        user.isVerified = true;
-        await user.save();
 
+        user.isVerified = true;
         // Optionally otp and otpExpire undefined
+        
         user.otp = undefined;
         user.otpExpire = undefined;
+        await user.save();
 
         return res.status(201).json(new ApiResponse(201, user, "User Verified successfully"));
     } catch (error) {
