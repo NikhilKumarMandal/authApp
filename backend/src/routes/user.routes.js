@@ -9,7 +9,8 @@ import {
     updateAccountDetails,
     verifyEmail,
     forgetPassword,
-    passwordReset
+    passwordReset,
+    resendEmail
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 const router = Router()
@@ -19,7 +20,8 @@ const router = Router()
 
 router.route("/register").post(registerUser)
 
-router.route("/verify-email").post(verifyEmail)
+router.route('/verify-email/:userId').post(verifyEmail)
+router.route('/resendEmail/:userId').post(resendEmail)
 router.route("/login").post(loginUser)
 
 //secured routes
