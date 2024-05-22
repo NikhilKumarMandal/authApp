@@ -35,7 +35,6 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400,"All fields are requried")
      }
 
-    try {
         const existedUser =  await User.findOne({
             email
          })
@@ -80,10 +79,7 @@ const registerUser = asyncHandler( async (req, res) => {
                 "User registered Successfully"
             )
         )
-    } catch (error) {
-        console.log("Error : ",error);
-        throw new ApiError(500,"Somthing went wrong")
-    }
+   
     
 })
 
