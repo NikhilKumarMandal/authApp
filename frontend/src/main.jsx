@@ -9,12 +9,14 @@ import SignIn from './pages/SignIn.jsx'
 import { Provider } from 'react-redux'
 import { store } from './redux/store.js'
 import VerifyEmail from './pages/VerifyEmail.jsx'
+import Home from './pages/Home.jsx'
 
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<Layout />}>
       <Route path='/sign-up' element={<SignUp />} />
+      <Route path='/home' element={<Home/>} />
       <Route path='/verify-email/:id' element={<VerifyEmail/>} />
       <Route path='/login' element={<SignIn/>} />    
     </Route>

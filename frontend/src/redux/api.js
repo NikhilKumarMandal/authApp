@@ -10,7 +10,7 @@ export const registerApi = createApi({
         method: 'POST',
         body: user,
         headers: {
-          'Content-Type': 'application/json', // Use 'Content-Type' instead of 'Content-type'
+          'Content-Type': 'application/json'
         },
       }),
     }),
@@ -28,9 +28,19 @@ export const registerApi = createApi({
         body: { } ,
       }),
     }),
+    loginUser: builder.mutation({
+      query: (user) => ({
+        url: 'login',
+        method: 'POST',
+        body: user,
+         headers: {
+          'Content-Type': 'application/json'
+        },
+      }),
+    }),
   }),
 });
 
-export const { useCreateUserMutation, useVerifyEmailMutation ,useResendOtpMutation } = registerApi;
+export const { useCreateUserMutation, useVerifyEmailMutation ,useResendOtpMutation,useLoginUserMutation } = registerApi;
 
 
