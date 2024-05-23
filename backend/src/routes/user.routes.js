@@ -20,7 +20,7 @@ const router = Router()
 
 router.route("/register").post(registerUser)
 
-router.route('/verify-email/:userId').post(verifyEmail)
+router.route('/verify-email/:id').post(verifyEmail)
 router.route('/resendEmail/:userId').post(resendEmail)
 router.route("/login").post(loginUser)
 

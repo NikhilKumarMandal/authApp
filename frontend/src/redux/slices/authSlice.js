@@ -1,4 +1,3 @@
-// features/userSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -20,7 +19,6 @@ const userSlice = createSlice({
                 console.error("User registration failed:", action.payload.message);
             }
         },
-
   },
 });
 

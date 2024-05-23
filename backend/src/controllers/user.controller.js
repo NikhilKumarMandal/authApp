@@ -84,7 +84,7 @@ const registerUser = asyncHandler( async (req, res) => {
 })
 
 const verifyEmail = asyncHandler(async (req, res) => {
-    const {userId} = req.params
+    const {id} = req.params
     const {  otp } = req.body;
 
     if (!otp) {
@@ -92,7 +92,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     }
 
     try {
-        const user = await User.findById( userId )
+        const user = await User.findById( id )
         
         if (!user) {
             throw new ApiError(400, "User does not exits!!!");
@@ -131,10 +131,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
 });
 
 const resendEmail = asyncHandler(async (req, res) => {
-    const { userId } = req.params
+    const { id } = req.params
 
     try {
-        const user = await User.findById(userId)
+        const user = await User.findById(id)
 
         if (!user) {
             throw new ApiError(404, "User not found");

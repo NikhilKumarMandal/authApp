@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from 'formik';
 import { registerSchema } from '../validations/Schema';
 import { useCreateUserMutation } from '../redux/api';
@@ -8,10 +8,12 @@ import { useDispatch } from 'react-redux';
 
 function SignUp() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [serverErrorMessage, setServerErrorMessage] = useState('');
   const [serverSuccessMessage, setServerSuccessMessage] = useState('');
   const [createUser] = useCreateUserMutation();
-  
+
   const initialValues = {
     name: '',
     email: '',
@@ -22,6 +24,7 @@ function SignUp() {
     initialValues,
     validationSchema: registerSchema,
     onSubmit: async (values, action) => {
+      console.log(values);
       try {
         const response = await createUser(values);
         console.log(response);
@@ -29,7 +32,9 @@ function SignUp() {
           setServerSuccessMessage(response.data.message);
           setServerErrorMessage('');
           action.resetForm();
-          dispatch(setUser({ success: true, data: response.data }));
+          dispatch(setUser(response.data)); 
+
+          navigate(`/verify-email/${response.data.data._id}`); 
         } else if (response.error) {
           setServerErrorMessage(response.error.message || "Registration failed");
           setServerSuccessMessage('');
@@ -103,3 +108,4 @@ function SignUp() {
 }
 
 export default SignUp;
+
