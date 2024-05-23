@@ -18,13 +18,19 @@ export const registerApi = createApi({
       query: ({ id, otp }) => ({
         url: `verify-email/${id}`,
         method: 'POST',
-        body: {otp} ,
-       
+        body: {otp} 
+      }),
+    }),
+    resendOtp: builder.mutation({
+      query: ({ id}) => ({
+        url: `resendEmail/${id}`,
+        method: 'POST',
+        body: { } ,
       }),
     }),
   }),
 });
 
-export const { useCreateUserMutation, useVerifyEmailMutation } = registerApi;
+export const { useCreateUserMutation, useVerifyEmailMutation ,useResendOtpMutation } = registerApi;
 
 

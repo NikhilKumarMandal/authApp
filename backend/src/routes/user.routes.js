@@ -21,7 +21,7 @@ const router = Router()
 router.route("/register").post(registerUser)
 
 router.route('/verify-email/:id').post(verifyEmail)
-router.route('/resendEmail/:userId').post(resendEmail)
+router.route('/resendEmail/:id').post(resendEmail)
 router.route("/login").post(loginUser)
 
 //secured routes

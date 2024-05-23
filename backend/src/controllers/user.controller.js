@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken" 
+import mongoose from "mongoose"
 import { sendEmailVerification, verifyemail,resetPassword } from "../utils/sendEmailVerification.js"
 import crypto from "crypto";
 
@@ -131,41 +132,39 @@ const verifyEmail = asyncHandler(async (req, res) => {
 });
 
 const resendEmail = asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const { id } = req.params;
+    console.log(id);
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid user ID");
+    }
 
     try {
-        const user = await User.findById(id)
+        const user = await User.findById(id);
 
         if (!user) {
             throw new ApiError(404, "User not found");
         }
 
-        const { otp, otpExpire } = user.generateOtp()
-        
-        user.otp = otp
-        user.otpExpire = otpExpire
-        await user.save({validateBeforeSave:false})
+        const { otp, otpExpire } = user.generateOtp();
+
+        user.otp = otp;
+        user.otpExpire = otpExpire;
+        await user.save({ validateBeforeSave: false });
 
         await sendEmailVerification({
             email: user.email,
-            subject: "verifY email",
-            mailgenContent: verifyemail(user.name,otp)
-        })
+            subject: "Verify Email",
+            mailgenContent: verifyemail(user.name, otp)
+        });
 
-        
-        return res.status(201)
-        .json(
-            new ApiResponse(
-                200, 
-                null, 
-                "Send OTP successfully"
-            )
-        )
+        return res.status(201).json(new ApiResponse(200, null, "Send OTP successfully"));
     } catch (error) {
-        console.log("Error : ",error);
-        throw new ApiError(500,"Somthing went wrong while sending OTP")
+        console.log("Error: ", error);
+        throw new ApiError(500, "Something went wrong while sending OTP");
     }
-})
+});
 
 const loginUser = asyncHandler(async (req, res) =>{
 
