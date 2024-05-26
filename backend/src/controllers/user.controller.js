@@ -452,6 +452,27 @@ const passwordReset = asyncHandler(async (req, res, next) => {
 });
 
 
+//  api/v1/users/?search=nikhil
+const allUsers = asyncHandler(async (req, res) => {
+     try {
+        const searchQuery = req.query.search;
+        const keyword = searchQuery ? {
+            $or: [
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { email: { $regex: searchQuery, $options: 'i' } }
+            ]
+        } : {};
+
+        const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+
+        res.status(200).json(new ApiResponse(200, users, "Search user successfully"));
+    } catch (error) {
+        res.status(500).json(new ApiResponse(500, null, "An error occurred while searching for users"));
+    }
+    
+})
+
+
   
 export {
     registerUser,
@@ -464,5 +485,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     passwordReset,
-    forgetPassword
+    forgetPassword,
+    allUsers
  }
