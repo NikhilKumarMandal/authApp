@@ -451,7 +451,6 @@ const passwordReset = asyncHandler(async (req, res, next) => {
     );
 });
 
-
 //  api/v1/users/?search=nikhil
 const allUsers = asyncHandler(async (req, res) => {
      try {
