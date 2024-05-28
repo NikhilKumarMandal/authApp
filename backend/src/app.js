@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser"
 const app = express()
 
 app.use(cors({
-origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN,
     credentials: true
 }));
 
@@ -22,10 +22,12 @@ app.use(cookieParser())
 
 import userRouter from "./routes/user.routes.js"
 import chatRouter from "./routes/chat.routes.js"
+import messageRouter from "./routes/message.routes.js"
 
 
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/chat", chatRouter)
+app.use("/api/v1/message", messageRouter)
 
 
 
