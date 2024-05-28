@@ -31,7 +31,7 @@ function SignIn() {
           setServerErrorMessage('');
           resetForm();
           dispatch(loginUser(response.data));
-          navigate('/home');
+          navigate('/');
         } else if (response.error) {
           setServerErrorMessage(response.error.data.message || "Login failed");
           setServerSuccessMessage('');

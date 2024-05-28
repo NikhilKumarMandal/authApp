@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
-import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from 'react-router-dom'
+import {  RouterProvider, createBrowserRouter} from 'react-router-dom'
 const Layout = React.lazy(() => import('./Layout.jsx'))
 import './index.css'
 import SignUp from './pages/SignUp.jsx'
@@ -10,18 +10,43 @@ import { Provider } from 'react-redux'
 import { store } from './redux/store.js'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import Home from './pages/Home.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path='/' element={<Layout />}>
-      <Route path='/sign-up' element={<SignUp />} />
-      <Route path='/home' element={<Home/>} />
-      <Route path='/verify-email/:id' element={<VerifyEmail/>} />
-      <Route path='/login' element={<SignIn/>} />    
-    </Route>
-  )
-)
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout/>,
+    children: [
+      {
+        path: "",
+      
+        element: (
+          <ProtectedRoute>
+            <Home />
+            </ProtectedRoute>
+        )
+      },
+      {
+        path: "/login",
+        element: <SignIn />
+      },
+      {
+        path: "/sign-up",
+        element: <SignUp />
+      },
+       {
+        path: "/verify-email/:id",
+        element: <VerifyEmail />
+      }
+    ]
+  }
+])
+
+
+
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
