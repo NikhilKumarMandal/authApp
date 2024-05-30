@@ -2,7 +2,10 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const registerApi = createApi({
   reducerPath: 'registerApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:8000/api/v1/users/' }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: 'http://localhost:8000/api/v1/users/',
+    credentials: 'include',
+  }),
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (user) => ({
@@ -18,14 +21,14 @@ export const registerApi = createApi({
       query: ({ id, otp }) => ({
         url: `verify-email/${id}`,
         method: 'POST',
-        body: {otp} 
+        body: { otp },
       }),
     }),
     resendOtp: builder.mutation({
-      query: ({ id}) => ({
+      query: ({ id }) => ({
         url: `resendEmail/${id}`,
         method: 'POST',
-        body: { } ,
+        body: {},
       }),
     }),
     loginUser: builder.mutation({
@@ -33,14 +36,21 @@ export const registerApi = createApi({
         url: 'login',
         method: 'POST',
         body: user,
-         headers: {
+        headers: {
           'Content-Type': 'application/json'
         },
+      }),
+    }),
+    logoutUser: builder.mutation({
+      query: () => ({
+        url: 'logout',
+        method: 'POST',
+        credentials: 'include' 
       }),
     }),
   }),
 });
 
-export const { useCreateUserMutation, useVerifyEmailMutation ,useResendOtpMutation,useLoginUserMutation } = registerApi;
+export const { useCreateUserMutation, useVerifyEmailMutation, useResendOtpMutation, useLoginUserMutation, useLogoutUserMutation } = registerApi;
 
 
