@@ -79,7 +79,7 @@ function SignIn() {
             {errors.password && <div className="text-sm text-red-500 px-2">{errors.password}</div>}
           </div>
           <p className="text-sm text-gray-600 p-1">
-            <Link to="/account/reset-password-link" className="text-indigo-500 hover:text-indigo-600 transition duration-300 ease-in-out">Forgot Password?</Link>
+            <Link to="/resetPassword/email" className="text-indigo-500 hover:text-indigo-600 transition duration-300 ease-in-out">Forgot Password?</Link>
           </p>
           <button
             type="submit"

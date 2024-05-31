@@ -48,9 +48,19 @@ export const registerApi = createApi({
         credentials: 'include' 
       }),
     }),
+    forgetPassword: builder.mutation({
+      query: (user) => ({
+        url: 'forget-password',
+        method: 'POST',
+        body: user,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }),
+    }),
   }),
 });
 
-export const { useCreateUserMutation, useVerifyEmailMutation, useResendOtpMutation, useLoginUserMutation, useLogoutUserMutation } = registerApi;
+export const { useCreateUserMutation, useVerifyEmailMutation, useResendOtpMutation, useLoginUserMutation, useLogoutUserMutation,useForgetPasswordMutation } = registerApi;
 
 

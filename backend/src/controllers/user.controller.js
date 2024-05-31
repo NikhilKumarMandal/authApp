@@ -383,7 +383,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-        return next(new ApiError(400, "User does not exist"));
+        return new ApiError(400, "User does not exist")
     }
 
     // Generate a forget password token

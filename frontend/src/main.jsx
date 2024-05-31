@@ -11,6 +11,7 @@ import { store } from './redux/store.js'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import Home from './pages/Home.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
 
 
 
@@ -36,9 +37,13 @@ const router = createBrowserRouter([
         path: "/sign-up",
         element: <SignUp />
       },
-       {
+      {
         path: "/verify-email/:id",
         element: <VerifyEmail />
+      },
+      {
+        path: "/resetPassword/email",
+        element: <ResetPassword/>
       }
     ]
   }
