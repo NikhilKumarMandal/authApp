@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import { resetPasswordLinkSchema } from '../validations/Schema';
 import { useForgetPasswordMutation } from '../redux/api';
 
 function ResetPassword() {
-  const navigate = useNavigate();
   const [serverSuccessMessage, setServerSuccessMessage] = useState('');
   const [serverErrorMessage, setServerErrorMessage] = useState('');
   const [forgetPassword] = useForgetPasswordMutation();
@@ -25,7 +24,6 @@ function ResetPassword() {
           setServerSuccessMessage(res.message);
           setServerErrorMessage('');
           resetForm();
-          navigate('/');
         } else {
           setServerErrorMessage(res.message || 'Failed to verify email');
           setServerSuccessMessage('');

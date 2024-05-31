@@ -391,13 +391,13 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Create the reset URL
-    const myUrl = `${req.protocol}://${req.get("host")}/api/v1/users/password/reset/${forgetToken}`;
+    const myUrl = `http://localhost:5173/reset-password/${forgetToken}`;
 
     try {
         // Send the email
         await sendEmailVerification({
             email: user.email, 
-            subject: "Todo Password reset email",
+            subject: " Password reset email",
             mailgenContent: resetPassword(user.name, myUrl)
         });
 

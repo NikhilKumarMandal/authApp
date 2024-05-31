@@ -33,5 +33,5 @@ export const verifyEmailSchema = Yup.object({
 
 export const changePasswordSchema = Yup.object({
   password: Yup.string().required("Password is required"),
-  password_confirmation: Yup.string().required("Confirm password is required").oneOf([Yup.ref("password"), null], "Password and Confirm Password doesn't match")
+  confirmPassword: Yup.string().required("Confirm password is required").oneOf([Yup.ref("password"), null], "Password and Confirm Password doesn't match")
 })

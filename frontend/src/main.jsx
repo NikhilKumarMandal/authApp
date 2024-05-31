@@ -12,6 +12,7 @@ import VerifyEmail from './pages/VerifyEmail.jsx'
 import Home from './pages/Home.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import PasswordResetLink from './pages/PasswordResetLink.jsx'
 
 
 
@@ -44,7 +45,11 @@ const router = createBrowserRouter([
       {
         path: "/resetPassword/email",
         element: <ResetPassword/>
-      }
+      },
+      {
+        path: '/reset-password/:token',
+        element: <PasswordResetLink/>,
+      },
     ]
   }
 ])
@@ -58,5 +63,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <RouterProvider router={router} />
     </React.StrictMode>,
-    </Provider>
+  </Provider>
 )
