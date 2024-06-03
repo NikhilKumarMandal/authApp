@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import { loginSchema } from '../validations/Schema';
 import { useLoginUserMutation } from '../redux/api';
@@ -6,7 +6,9 @@ import { useDispatch } from 'react-redux';
 import { loginUser } from '../redux/slices/authSlice';
 import { Link, useNavigate } from "react-router-dom";
 
+
 function SignIn() {
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [serverErrorMessage, setServerErrorMessage] = useState('');
@@ -29,6 +31,8 @@ function SignIn() {
         if (response.data && response.data.success === true) {
           setServerSuccessMessage(response.data.message);
           setServerErrorMessage('');
+         
+
           resetForm();
           dispatch(loginUser(response.data));
           navigate('/');
@@ -45,6 +49,8 @@ function SignIn() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
+
+      
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
         <form onSubmit={handleSubmit}>
