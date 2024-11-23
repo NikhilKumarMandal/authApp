@@ -8,7 +8,7 @@ import { sendEmailVerification, verifyemail,resetPassword } from "../utils/sendE
 import crypto from "crypto";
 
 
-const generateAccessAndRefereshTokens = async(userId) =>{
+export const generateAccessAndRefereshTokens = async(userId) =>{
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
@@ -198,7 +198,7 @@ const loginUser = asyncHandler(async (req, res) =>{
    const options = {
     httpOnly: true, 
     secure: true, 
-};
+    };
 
     return res
     .status(200)

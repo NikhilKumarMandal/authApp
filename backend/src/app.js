@@ -3,6 +3,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from "http";
 import { Server } from "socket.io";
+import userRouter from "./routes/user.routes.js";
+import chatRouter from "./routes/chat.routes.js";
+import messageRouter from "./routes/message.routes.js";
+
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -37,13 +41,15 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-import userRouter from "./routes/user.routes.js";
-import chatRouter from "./routes/chat.routes.js";
-import messageRouter from "./routes/message.routes.js";
-
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/message", messageRouter);
+
+
+
+  
+
+
 
 
 
