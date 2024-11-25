@@ -6,7 +6,7 @@ import crypto from "crypto";
 
 const userSchema = new Schema(
     {
-        name: {
+        username: {
           type: String,
           required: [true, "Please enter your name"],
         },

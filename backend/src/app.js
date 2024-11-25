@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import userRouter from "./routes/user.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import messageRouter from "./routes/message.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 
 const app = express();
@@ -51,6 +52,6 @@ app.use("/api/v1/message", messageRouter);
 
 
 
-
+app.use(errorHandler)
 
 export { app, httpServer };

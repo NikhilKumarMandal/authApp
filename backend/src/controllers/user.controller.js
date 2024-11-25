@@ -26,12 +26,15 @@ export const generateAccessAndRefereshTokens = async(userId) =>{
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
 }
+
+const OTP_EXPIRATION_MINUTES = 15;
+
 // TEST CASE PASS
 const registerUser = asyncHandler( async (req, res) => {
-     const {name,email,password} = req.body
+     const {username,email,password} = req.body
 
      if (
-        [name,email,password].some((field) => field.trim() === "")
+        [username,email,password].some((field) => field.trim() === "")
      ) {
         throw new ApiError(400,"All fields are requried")
      }
@@ -45,7 +48,7 @@ const registerUser = asyncHandler( async (req, res) => {
         }
         
         const user = await User.create({
-            name,
+            username,
             email,
             password,
         })
@@ -85,50 +88,46 @@ const registerUser = asyncHandler( async (req, res) => {
 })
 
 const verifyEmail = asyncHandler(async (req, res) => {
-    const {id} = req.params
-    const {  otp } = req.body;
+    const { id } = req.params;
+    const { otp } = req.body;
 
     if (!otp) {
-        throw new ApiError(400, "OTP filed is requried");
+        throw new ApiError(400, "OTP is required");
     }
 
-    try {
-        const user = await User.findById( id )
-        
-        if (!user) {
-            throw new ApiError(400, "User does not exits!!!");
-        }
-    
-        if (user.isVerified) {
-            throw new ApiError(400, "User is already verified");
-        }
-    
-        if (user.otp !== otp) {
-            return res.status(400).json(new ApiResponse(400, "Invalid OTP, new OTP sent to your email"));
-        }
-    
-        // Check if OTP is expired
-        const currentTime = Date.now();
-        const expirationTime = new Date(user.otpExpire.getTime() + 15 * 60 * 1000);
-        
-        if (currentTime > expirationTime) {
-            return res.status(400).json(new ApiResponse(400, "OTP expired "));
-        }
- 
-        // OTP is valid and not expired, mark email as verified
-
-        user.isVerified = true;
-        // Optionally otp and otpExpire undefined
-        
-        user.otp = undefined;
-        user.otpExpire = undefined;
-        await user.save();
-
-        return res.status(201).json(new ApiResponse(201, user, "User Verified successfully"));
-    } catch (error) {
-        console.log(error);
-        throw new ApiError(500, "Unable to verify email, please try again later");
+    // Fetch user
+    const user = await User.findById(id);
+    if (!user) {
+        throw new ApiError(404, "User does not exist");
     }
+
+    if (user.isVerified) {
+        throw new ApiError(400, "User is already verified");
+    }
+
+    // Validate OTP
+    if (user.otp !== otp) {
+        return res.status(400).json(new ApiResponse(400, "Invalid OTP, a new OTP has been sent to your email"));
+    }
+
+    // Check if OTP is expired
+    const isOtpExpired = Date.now() > new Date(user.otpExpire).getTime() + OTP_EXPIRATION_MINUTES * 60 * 1000;
+    if (isOtpExpired) {
+        return res.status(400).json(new ApiResponse(400, "OTP has expired"));
+    }
+
+    // Mark user as verified
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpire = undefined;
+
+    await user.save();
+
+    return res.status(200).json(new ApiResponse(
+        200,
+        user,
+        "User verified successfully"
+    ));
 });
 
 const resendEmail = asyncHandler(async (req, res) => {
@@ -331,7 +330,10 @@ const changeCurrentPassword = asyncHandler(async(req,res) => {
 
 })
 
-const getCurrentUser = asyncHandler(async(req,res) => {
+const getCurrentUser = asyncHandler(async (req, res) => {
+    
+
+    
     return res
     .status(200)
     .json(
@@ -485,5 +487,6 @@ export {
     updateAccountDetails,
     passwordReset,
     forgetPassword,
-    allUsers
+    allUsers,
+
  }
