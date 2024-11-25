@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import userRouter from "./routes/user.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import messageRouter from "./routes/message.routes.js";
+import roomRouter from "./routes/room.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 
@@ -45,12 +46,7 @@ app.use(cookieParser());
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/message", messageRouter);
-
-
-
-  
-
-
+app.use("/api/v1/room", roomRouter);
 
 app.use(errorHandler)
 
