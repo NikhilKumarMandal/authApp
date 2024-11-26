@@ -7,10 +7,10 @@ const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
         // Appears in header & footer of e-mails
-        name: 'nikhil',
-        link: 'http://localhost:5173/'
+        name: 'MemerHouse',
+        link: 'http://localhost:3000/',
         // Optional product logo
-        // logo: 'https://mailgen.js/img/logo.png'
+        // logo: '/logo.svg'
     }
 });
     console.log(mailgenContent)
@@ -31,7 +31,7 @@ let emailText = mailGenerator.generatePlaintext(mailgenContent);
     return  {
     body: {
         name: name,
-        intro: 'Welcome to Mailgen! We\'re very excited to have you on board.',
+        intro: 'Welcome to MemerHouse! We\'re very excited to have you on board.',
         dictionary: {
         OTP: verifyotp
       },

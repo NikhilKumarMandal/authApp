@@ -20,6 +20,8 @@ const createRoom = asyncHandler(async (req, res) => {
         speakers: [owner]
     })
 
+    await room.save();
+
     res.status(200).json(new ApiResponse(
         200,
         room,
@@ -27,6 +29,13 @@ const createRoom = asyncHandler(async (req, res) => {
     ))
 })
 
+const getAllRooms = asyncHandler(async (req, res) => {
+    const rooms = await roomModel.find({ roomType: "open" });
+    
+    res.status(200).json(new ApiResponse(200,rooms,"Rooms fected successfully"))
+})
+
 export {
-    createRoom
+    createRoom,
+    getAllRooms
 }

@@ -9,6 +9,7 @@ const roomSchema = new mongoose.Schema(
     roomType: {
       type: String,
       required: true,
+      index: true
     },
     owner: {
       type: Schema.Types.ObjectId,

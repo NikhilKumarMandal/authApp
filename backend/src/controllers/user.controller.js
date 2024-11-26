@@ -216,7 +216,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 })
 
 const logoutUser = asyncHandler(async(req, res) => {
-   try {
+
      await User.findByIdAndUpdate(
          req.user._id,
          {
@@ -247,11 +247,7 @@ const logoutUser = asyncHandler(async(req, res) => {
              "User logged Out"
              )
          )
-    console.log('Cookies cleared successfully');
-   } catch (error) {
-    throw new ApiError(500,"somthing went wrong");
-    console.error('Error clearing cookies:', error);
-   }
+
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
