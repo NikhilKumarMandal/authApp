@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken"
 import mongoose from "mongoose"
 import { sendEmailVerification, verifyemail,resetPassword } from "../utils/sendEmailVerification.js"
 import crypto from "crypto";
+import axios from "axios"
 
 
 export const generateAccessAndRefereshTokens = async(userId) =>{
@@ -14,11 +15,10 @@ export const generateAccessAndRefereshTokens = async(userId) =>{
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
         
-        console.log(accessToken);
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
-        console.log("hello",refreshToken);
+
         return {accessToken, refreshToken}
 
 
@@ -53,7 +53,7 @@ const registerUser = asyncHandler( async (req, res) => {
             password,
         })
     
-        console.log(user);
+   
     
         const createdUser = await User.findById(user._id).select(
             "-password "
@@ -62,7 +62,7 @@ const registerUser = asyncHandler( async (req, res) => {
         if (!createdUser) {
             throw new ApiError(500, "Something went wrong while registering the user")
         }
-        console.log(createdUser);
+
         
         const { otp, otpExpire } = createdUser.generateOtp()
         
@@ -132,8 +132,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
 const resendEmail = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    console.log(id);
-
+  
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(400, "Invalid user ID");
@@ -168,7 +167,7 @@ const resendEmail = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) =>{
 
     const { email,password } = req.body
-    console.log(email);
+
 
     if (!email ) {
         throw new ApiError(400, "email is required")
@@ -185,7 +184,6 @@ const loginUser = asyncHandler(async (req, res) =>{
     }
 
    const isPasswordValid = await user.isPasswordCorrect(password)
-    console.log(isPasswordValid);
    if (!isPasswordValid) {
     throw new ApiError(401, "Invalid user credentials")
     }
@@ -268,7 +266,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid refresh token");
       }
       
-      console.log(user);
+      
      
       if (incomingRefreshToken !== user?.refreshToken) {
         // If token is valid but is used already
@@ -290,7 +288,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         .json(
           new ApiResponse(
             200,
-            { accessToken, refreshToken: newRefreshToken },
+            { },
             "Access token refreshed"
           )
         );
@@ -327,18 +325,9 @@ const changeCurrentPassword = asyncHandler(async(req,res) => {
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-    
-
-    
     return res
     .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            req.user,
-            "User fetched successfully"
-            )
-        )
+    .json(req.user)
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -469,6 +458,58 @@ const allUsers = asyncHandler(async (req, res) => {
     
 })
 
+const googleAuth = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    throw new ApiError(400, "Token is required!");
+  }
+
+  const googleToken = token;
+  const googleOauthUrl = new URL("https://oauth2.googleapis.com/tokeninfo");
+  googleOauthUrl.searchParams.set("id_token", googleToken);
+
+  const { data } = await axios.get(googleOauthUrl.toString(), {
+    responseType: "json",
+  });
+
+  let user = await User.findOne({ email: data.email });
+
+  // If the user does not exist, create a new user with googleId
+  if (!user) {
+    user = await User.create({
+      username: data.name,
+      email: data.email,
+      isVerified: data.email_verified,
+      avatar: data.picture,
+      googleId: data.sub,
+    });
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in successfully"
+      )
+    );
+});
+
 
   
 export {
@@ -484,5 +525,5 @@ export {
     passwordReset,
     forgetPassword,
     allUsers,
-
+    googleAuth
  }

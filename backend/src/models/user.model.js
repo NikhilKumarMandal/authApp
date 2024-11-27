@@ -2,44 +2,53 @@ import mongoose, {Schema} from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { type } from "os";
 
 
 const userSchema = new Schema(
-    {
-        username: {
-          type: String,
-          required: [true, "Please enter your name"],
-        },
-        email: {
-          type: String,
-          required: [true, "Please enter your email"],
-          unique: true,
-        },
-        password: {
-          type: String,
-          required: [true, "Please enter your password"],
-        },
-        refreshToken: {
-            type: String
-        },
-        isVerified: {
-            type: Boolean,
-            default: false
-        },
-        resetPasswordToken: String,   
-        resetPasswordExpire: Date,
-        otp: {
-        type: String
-        },
-        otpExpire: {
-            type: Date
-        }
+  {
+    username: {
+      type: String,
+      required: [true, "Please enter your name"],
     },
-    
-       {
-        timestamps: true
-       }
-)
+    email: {
+      type: String,
+      required: [true, "Please enter your email"],
+      unique: true,
+    },
+    avatar: {
+      type: String,
+    },
+    password: {
+      type: String,
+      required: function () {
+        return !this.googleId; // Password is required only if googleId is not present
+      },
+    },
+    refreshToken: {
+      type: String,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    otp: {
+      type: String,
+    },
+    otpExpire: {
+      type: Date,
+    },
+    googleId: {
+      type: String, // Store the unique Google ID for OAuth users
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 
 userSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();

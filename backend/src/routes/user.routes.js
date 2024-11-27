@@ -11,7 +11,8 @@ import {
     forgetPassword,
     passwordReset,
     resendEmail,
-    allUsers
+    allUsers,
+    googleAuth
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 const router = Router()
@@ -20,6 +21,7 @@ const router = Router()
 
 
 router.route("/register").post(registerUser)
+router.route("/google").post(googleAuth)
 
 router.route('/verify-email/:id').post(verifyEmail)
 router.route('/resendEmail/:id').post(resendEmail)
